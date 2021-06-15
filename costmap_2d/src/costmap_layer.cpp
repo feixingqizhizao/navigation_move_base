@@ -2,7 +2,7 @@
 
 namespace costmap_2d
 {
-
+//touch函数传入一个bound和一个坐标，若坐标不在bound范围内，它扩张bound，使其包含坐标；
 void CostmapLayer::touch(double x, double y, double* min_x, double* min_y, double* max_x, double* max_y)
 {
     *min_x = std::min(x, *min_x);
@@ -10,7 +10,7 @@ void CostmapLayer::touch(double x, double y, double* min_x, double* min_y, doubl
     *max_x = std::max(x, *max_x);
     *max_y = std::max(y, *max_y);
 }
-
+//matchSize函数用主地图的尺寸来设置该层地图的尺寸
 void CostmapLayer::matchSize()
 {
     Costmap2D* master = layered_costmap_->getCostmap();
@@ -34,7 +34,7 @@ void CostmapLayer::clearArea(int start_x, int start_y, int end_x, int end_y, boo
     }
   }
 }
-
+//addExtraBounds函数将传入的bound与数据成员的值比较，如果传入的bound范围更大，则更新数据成员的值；
 void CostmapLayer::addExtraBounds(double mx0, double my0, double mx1, double my1)
 {
     extra_min_x_ = std::min(mx0, extra_min_x_);
@@ -43,7 +43,8 @@ void CostmapLayer::addExtraBounds(double mx0, double my0, double mx1, double my1
     extra_max_y_ = std::max(my1, extra_max_y_);
     has_extra_bounds_ = true;
 }
-
+//useExtraBounds函数在调用addExtraBounds函数后使用，
+//它将传入的bound与更新后的数据成员比较，将更大的范围通过传入的指针填充，并恢复数据成员初始值，认为将add的bound使用过了；
 void CostmapLayer::useExtraBounds(double* min_x, double* min_y, double* max_x, double* max_y)
 {
     if (!has_extra_bounds_)
@@ -59,7 +60,8 @@ void CostmapLayer::useExtraBounds(double* min_x, double* min_y, double* max_x, d
     extra_max_y_ = -1e6;
     has_extra_bounds_ = false;
 }
-
+//updateWithMax函数用当前子地图数据（不包括未知cell）更新主地图对应区域，
+//若对应cell的cost值比主地图大或主地图该cell为未知时，用子地图数据覆盖，否则保留主地图原数据；
 void CostmapLayer::updateWithMax(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j)
 {
   if (!enabled_)
@@ -85,7 +87,7 @@ void CostmapLayer::updateWithMax(costmap_2d::Costmap2D& master_grid, int min_i, 
     }
   }
 }
-
+//updateWithTrueOverwrite函数用当前子地图数据（包括未知cell）覆盖主地图对应区域；
 void CostmapLayer::updateWithTrueOverwrite(costmap_2d::Costmap2D& master_grid, int min_i, int min_j,
                                            int max_i, int max_j)
 {
@@ -104,7 +106,7 @@ void CostmapLayer::updateWithTrueOverwrite(costmap_2d::Costmap2D& master_grid, i
     }
   }
 }
-
+//updateWithOverwrite函数用当前子地图数据（不包括未知cell）覆盖主地图对应区域；
 void CostmapLayer::updateWithOverwrite(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j)
 {
   if (!enabled_)
@@ -123,7 +125,8 @@ void CostmapLayer::updateWithOverwrite(costmap_2d::Costmap2D& master_grid, int m
     }
   }
 }
-
+//updateWithAddition函数用当前子地图数据（不包括未知cell）更新主地图对应区域，若主地图该cell为未知，用子地图数据覆盖；
+//否则，在主地图原数据基础上+子地图数据（将进行限制避免cost值溢出）
 void CostmapLayer::updateWithAddition(costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j)
 {
   if (!enabled_)

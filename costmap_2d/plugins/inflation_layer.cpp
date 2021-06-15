@@ -70,7 +70,7 @@ InflationLayer::InflationLayer()
 {
   inflation_access_ = new boost::recursive_mutex();
 }
-
+//这个函数没什么特别的，最重要的工作是调用了类内的matchSize函数。
 void InflationLayer::onInitialize()
 {
   {
@@ -110,7 +110,13 @@ void InflationLayer::reconfigureCB(costmap_2d::InflationPluginConfig &config, ui
     need_reinflation_ = true;
   }
 }
+//由于InflationLayer没有继承Costmap2D，所以它和静态地图与障碍地图这两层不同，它没有属于自己的栅格地图要维护，
+//所以matchSize函数自然不需要根据主地图的参数来调节本层地图。这个函数先获取主地图的分辨率，
+//接着调用cellDistance函数，这个函数可以把global系以米为单位的长度转换成以cell为单位的距离，故获得了地图上的膨胀参数cell_inflation_radius_。
 
+//接下来调用computeCaches函数，完成两个“参考矩阵”的填充，内容后述。
+
+//最后根据主地图大小创建seen_数组，它用于标记cell是否已经过计算。
 void InflationLayer::matchSize()
 {
   boost::unique_lock < boost::recursive_mutex > lock(*inflation_access_);

@@ -104,7 +104,15 @@ bool ObservationBuffer::setGlobalFrame(const std::string new_global_frame)
   global_frame_ = new_global_frame;
   return true;
 }
+//ObservationBuffer类是专门用于存储观测数据的类，它是ObstacleLayer的类成员。
+//这里关注一下它的bufferCloud函数：当接收到sensor_msgs::PointCloud2格式的点云后，
+//它将点云转换为pcl::PointCloud < pcl::PointXYZ >格式后，调用bufferCloud的重载函数。
 
+//在它的重载函数bufferCloud中，设置好传感器坐标系origin_frame，并将origin_frame下的传感器原点（0，0，0）转换到global系下，
+//得到传感器的坐标，并放进buffer的observation_list_.front().origin_中。
+
+//然后将传入的点云cloud转换到global系下，得到global_frame_cloud，
+//接下来，开始遍历点云中的点，剔除z坐标过小或过大的点，将合乎要求的点放进buffer的observation_list_.front().cloud_。这样，便得到了经过筛选后的点云及传感器原点。
 void ObservationBuffer::bufferCloud(const sensor_msgs::PointCloud2& cloud)
 {
   geometry_msgs::PointStamped global_origin;
@@ -127,17 +135,16 @@ void ObservationBuffer::bufferCloud(const sensor_msgs::PointCloud2& cloud)
     tf2_buffer_.transform(local_origin, global_origin, global_frame_);
     tf2::convert(global_origin.point, observation_list_.front().origin_);
 
-    // make sure to pass on the raytrace/obstacle range of the observation buffer to the observations
+    //将传感器原点从传感器坐标系转换到世界坐标系
     observation_list_.front().raytrace_range_ = raytrace_range_;
     observation_list_.front().obstacle_range_ = obstacle_range_;
 
     sensor_msgs::PointCloud2 global_frame_cloud;
 
-    // transform the point cloud
+    //将点云从传感器坐标系转换到世界坐标系
     tf2_buffer_.transform(cloud, global_frame_cloud, global_frame_);
     global_frame_cloud.header.stamp = cloud.header.stamp;
 
-    // now we need to remove observations from the cloud that are below or above our height thresholds
     sensor_msgs::PointCloud2& observation_cloud = *(observation_list_.front().cloud_);
     observation_cloud.height = global_frame_cloud.height;
     observation_cloud.width = global_frame_cloud.width;
@@ -146,7 +153,7 @@ void ObservationBuffer::bufferCloud(const sensor_msgs::PointCloud2& cloud)
     observation_cloud.point_step = global_frame_cloud.point_step;
     observation_cloud.row_step = global_frame_cloud.row_step;
     observation_cloud.is_dense = global_frame_cloud.is_dense;
-
+    //根据传感器点云点数，重设buffer大小
     unsigned int cloud_size = global_frame_cloud.height*global_frame_cloud.width;
     sensor_msgs::PointCloud2Modifier modifier(observation_cloud);
     modifier.resize(cloud_size);
@@ -158,6 +165,7 @@ void ObservationBuffer::bufferCloud(const sensor_msgs::PointCloud2& cloud)
     std::vector<unsigned char>::iterator iter_obs = observation_cloud.data.begin();
     for (; iter_global != iter_global_end; ++iter_z, iter_global += global_frame_cloud.point_step)
     {
+      //复制点云，去除掉z坐标太高的点
       if ((*iter_z) <= max_obstacle_height_
           && (*iter_z) >= min_obstacle_height_)
       {

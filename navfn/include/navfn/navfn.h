@@ -46,10 +46,10 @@
 #include <string.h>
 #include <stdio.h>
 
-// cost defs
-#define COST_UNKNOWN_ROS 255		// 255 is unknown cost
-#define COST_OBS 254		// 254 for forbidden regions
-#define COST_OBS_ROS 253	// ROS values of 253 are obstacles
+// 定义代价 未知为255，254为禁止，253为ROS障碍物
+#define COST_UNKNOWN_ROS 255
+#define COST_OBS 254
+#define COST_OBS_ROS 253
 
 // navfn cost values are set to
 // COST_NEUTRAL + COST_FACTOR * costmap_cost_value.

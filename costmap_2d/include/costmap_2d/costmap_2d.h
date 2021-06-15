@@ -52,7 +52,7 @@ struct MapLocation
   unsigned int x;
   unsigned int y;
 };
-
+//Costmap2D类是记录地图数据的底层，它记录地图的x、y方向的尺寸，地图的分辨率，地图原点位置，以及用unsigned char类型记录地图内容。
 /**
  * @class Costmap2D
  * @brief A 2D costmap provides a mapping between points in the world and their associated "costs".
